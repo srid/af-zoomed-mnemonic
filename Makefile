@@ -1,5 +1,4 @@
 NAME := af-zoomed-mnemonic
-URL := afmnemonic.happyandrmless.com
 PORT := 8080
 
 all:	fmt image run
@@ -14,7 +13,7 @@ run:
 
 runprod:
 	docker rm -vf ${NAME}-run || true
-	docker run --name=${NAME}-run -d -e VIRTUAL_HOST=${URL} ${NAME}
+	docker run --name=${NAME}-run -d ${NAME}
 	docker logs -f ${NAME}-run
 
 fmt:
