@@ -4,6 +4,9 @@ PORT := 8080
 all:	fmt image run
 	@true
 
+allprod:	gitpull image runprod
+	@true
+
 image:
 	docker build -t ${NAME} .
 
@@ -15,6 +18,9 @@ runprod:
 	docker rm -vf ${NAME}-run || true
 	docker run --name=${NAME}-run -d ${NAME}
 	docker logs -f ${NAME}-run
+
+gitpull:
+	git pull
 
 fmt:
 	gofmt -w .
