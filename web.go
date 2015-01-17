@@ -25,9 +25,9 @@ func curl(url string) ([]byte, error) {
 
 // ZoomHTMLBody transforms the HTML body such that it renders zoomed
 // in the manner of browser-level zoom.
-func ZoomHTMLBody(body []byte, zoom int) []byte {
+func ZoomHTMLBody(body []byte, zoom float32) []byte {
 	// Courtesy of http://stackoverflow.com/a/1156526/55246
-	zoomCssTmpl := "body { zoom: %d; -moz-transform: scale(%d); -moz-transform-origin: 0 0}"
+	zoomCssTmpl := "body { zoom: %v; -moz-transform: scale(%v); -moz-transform-origin: 0 0}"
 	zoomCss := fmt.Sprintf(zoomCssTmpl, zoom, zoom)
 	afSiteStyleTag := "</style>"
 	return bytes.Replace(
@@ -49,7 +49,7 @@ func main() {
 		if body, err := curl(url); err != nil {
 			c.String(500, fmt.Sprintf("ERROR: %v", err))
 		} else {
-			c.Data(200, "text/html", ZoomHTMLBody(body, 2))
+			c.Data(200, "text/html", ZoomHTMLBody(body, 2.5))
 		}
 	})
 	router.Run("0.0.0.0:8080")
