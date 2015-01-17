@@ -51,7 +51,7 @@ func parsePath(c *gin.Context) (float64, string) {
 func main() {
 	router := gin.Default()
 	router.GET("/", func(c *gin.Context) {
-		c.Redirect(301, "/2.5/richard/automaticdisplay/pageone.htm")
+		c.Redirect(302, "/2.5/richard/automaticdisplay/pageone.htm")
 	})
 	router.GET("/:zoom/richard/images/*rest", func(c *gin.Context) {
 		_, path := parsePath(c)
