@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 const BaseURL = "http://actualfreedom.com.au/"
@@ -37,30 +38,34 @@ func ZoomHTMLBody(body []byte, zoom float64) []byte {
 		[]byte(zoomCss+afSiteStyleTag), 1)
 }
 
+func parsePath(c *gin.Context) (float64, string) {
+	zoomS := c.Params.ByName("zoom")
+	path := strings.Replace(c.Request.URL.Path, "/"+zoomS, "", 1)
+	zoom, err := strconv.ParseFloat(zoomS, 32)
+	if err != nil {
+		zoom = 1.0
+	}
+	return zoom, path
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("/", func(c *gin.Context) {
-		c.Redirect(301, "/richard/automaticdisplay/pageone.htm")
+		c.Redirect(301, "/2.5/richard/automaticdisplay/pageone.htm")
 	})
-	router.GET("/richard/images/*rest", func(c *gin.Context) {
-		c.Redirect(301, BaseURL+c.Request.URL.Path)
+	router.GET("/:zoom/richard/images/*rest", func(c *gin.Context) {
+		_, path := parsePath(c)
+		c.Redirect(301, BaseURL+path)
 	})
-	router.GET("/richard/automaticdisplay/*rest", func(c *gin.Context) {
-		url := BaseURL + c.Request.URL.Path
+	router.GET("/:zoom/richard/automaticdisplay/*rest", func(c *gin.Context) {
+		zoom, path := parsePath(c)
+		url := BaseURL + path
+
 		if body, err := curl(url); err != nil {
 			c.String(500, fmt.Sprintf("ERROR: %v", err))
 		} else {
-			zoomS := c.Request.URL.Query().Get("zoom")
-			if zoomS == "" {
-				c.Data(200, "text/html", body)
-			} else {
-				if zoom, err := strconv.ParseFloat(zoomS, 32); err != nil {
-					c.String(404, fmt.Sprintf("Invalid zoom: %v", err))
-				} else {
-					body = ZoomHTMLBody(body, zoom)
-					c.Data(200, "text/html", ZoomHTMLBody(body, zoom))
-				}
-			}
+			body = ZoomHTMLBody(body, zoom)
+			c.Data(200, "text/html", body)
 		}
 	})
 	router.Run("0.0.0.0:8080")
