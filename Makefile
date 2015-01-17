@@ -1,7 +1,10 @@
 NAME := af-zoomed-mnemonic
 PORT := 8080
 
-all:	fmt
+all:	fmt	image run
+	@true
+
+image:
 	docker build -t ${NAME} .
 
 run:
