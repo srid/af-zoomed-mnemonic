@@ -25,17 +25,16 @@ func curl(url string) ([]byte, error) {
 	}
 }
 
-// ZoomHTMLBody transforms the HTML body such that it renders zoomed
-// in the manner of browser-level zoom.
-func ZoomHTMLBody(body []byte, zoom float64) []byte {
-	// Courtesy of http://stackoverflow.com/a/1156526/55246
-	zoomCssTmpl := "body { zoom: %v; -moz-transform: scale(%v); -moz-transform-origin: 0 0}"
-	zoomCss := fmt.Sprintf(zoomCssTmpl, zoom, zoom)
-	afSiteStyleTag := "</style>"
-	return bytes.Replace(
+func FixFontSize(body []byte, size float64) []byte {
+	// The 'size' attribute of the 'font' tag is apparently not
+	// supported in HTML5. Which could explain why changing the size
+	// attribute has no effect, at least in Safari.
+	body = bytes.Replace(
 		body,
-		[]byte(afSiteStyleTag),
-		[]byte(zoomCss+afSiteStyleTag), 1)
+		[]byte("font size=\"6\""),
+		[]byte(fmt.Sprintf("font style=\"font-size: %vem;\"", size)),
+		-1)
+	return body
 }
 
 func parsePath(c *gin.Context) (float64, string) {
@@ -55,12 +54,7 @@ func main() {
 	})
 	router.GET("/:zoom/richard/images/*rest", func(c *gin.Context) {
 		_, path := parsePath(c)
-		betterBeach := "http://cdn2.landscapehdwalls.com/wallpapers/1/boat-on-turquoise-water-2019-2560x1600.jpg"
-		if strings.Contains(path, "waterbackground") {
-			c.Redirect(301, betterBeach)
-		} else {
-			c.Redirect(301, BaseURL+path)
-		}
+		c.Redirect(302, BaseURL+path)
 	})
 	router.GET("/:zoom/richard/automaticdisplay/*rest", func(c *gin.Context) {
 		zoom, path := parsePath(c)
@@ -69,7 +63,7 @@ func main() {
 		if body, err := curl(url); err != nil {
 			c.String(500, fmt.Sprintf("ERROR: %v", err))
 		} else {
-			body = ZoomHTMLBody(body, zoom)
+			body = FixFontSize(body, zoom)
 			c.Data(200, "text/html", body)
 		}
 	})
