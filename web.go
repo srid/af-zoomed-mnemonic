@@ -55,7 +55,12 @@ func main() {
 	})
 	router.GET("/:zoom/richard/images/*rest", func(c *gin.Context) {
 		_, path := parsePath(c)
-		c.Redirect(301, BaseURL+path)
+		betterBeach := "http://cdn2.landscapehdwalls.com/wallpapers/1/boat-on-turquoise-water-2019-2560x1600.jpg"
+		if strings.Contains(path, "waterbackground") {
+			c.Redirect(301, betterBeach)
+		} else {
+			c.Redirect(301, BaseURL+path)
+		}
 	})
 	router.GET("/:zoom/richard/automaticdisplay/*rest", func(c *gin.Context) {
 		zoom, path := parsePath(c)
