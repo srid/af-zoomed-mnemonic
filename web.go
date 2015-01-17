@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -22,6 +23,19 @@ func curl(url string) ([]byte, error) {
 	}
 }
 
+// ZoomHTMLBody transforms the HTML body such that it renders zoomed
+// in the manner of browser-level zoom.
+func ZoomHTMLBody(body []byte, zoom int) []byte {
+	// Courtesy of http://stackoverflow.com/a/1156526/55246
+	zoomCssTmpl := "body { zoom: %d; -moz-transform: scale(%d); -moz-transform-origin: 0 0}"
+	zoomCss := fmt.Sprintf(zoomCssTmpl, zoom, zoom)
+	afSiteStyleTag := "</style>"
+	return bytes.Replace(
+		body,
+		[]byte(afSiteStyleTag),
+		[]byte(zoomCss+afSiteStyleTag), 1)
+}
+
 func main() {
 	router := gin.Default()
 	router.GET("/", func(c *gin.Context) {
@@ -35,7 +49,7 @@ func main() {
 		if body, err := curl(url); err != nil {
 			c.String(500, fmt.Sprintf("ERROR: %v", err))
 		} else {
-			c.Data(200, "text/html", body)
+			c.Data(200, "text/html", ZoomHTMLBody(body, 2))
 		}
 	})
 	router.Run("0.0.0.0:8080")
